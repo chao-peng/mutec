@@ -39,6 +39,7 @@ std::map<int, std::string> mutableOperatorTemplates;
 std::map<std::string, std::list<std::string>> generatedMutantList;
 
 std::string directory;
+bool randomGenerate;
 
 ASTContext* context;
 
@@ -199,7 +200,7 @@ public:
         outputFileStream.close();
         UserConfig::removeFakeHeader(filename);
         
-        std::list<std::string> mutants = MuTeCUtils::generateMutant(filename, mutableOperatorTemplates, directory + realCurrentFileName);
+        std::list<std::string> mutants = MuTeCUtils::generateMutant(filename, mutableOperatorTemplates, directory + realCurrentFileName, randomGenerate);
 
         notification << "|- " << mutants.size() << " mutants have been generated.";
 
@@ -226,7 +227,7 @@ private:
     Rewriter myRewriter;
 };
 
-int parseCode(clang::tooling::ClangTool* tool, const int& numSourceFileIn, std::map<std::string, std::list<std::string>>** mutantFileList, const std::string& outputDirectory){
+int parseCode(clang::tooling::ClangTool* tool, const int& numSourceFileIn, std::map<std::string, std::list<std::string>>** mutantFileList, const std::string& outputDirectory, bool random){
     codeTemplate = "";
     templateMap.clear();
     MuTeCUtils::initialiseOperatorTypeMap(operatorType);
@@ -236,6 +237,7 @@ int parseCode(clang::tooling::ClangTool* tool, const int& numSourceFileIn, std::
     currentSourceFileID = 1;
     numOperators=0;
     directory = outputDirectory;
+    randomGenerate = random;
 
     tool->run(newFrontendActionFactory<ASTFrontendActionForSourceCodeInvastigator>().get());
     *mutantFileList = &generatedMutantList;

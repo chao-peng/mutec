@@ -59,6 +59,13 @@ static llvm::cl::opt<std::string> outputDirectory(
     llvm::cl::Required
 );
 
+static llvm::cl::opt<bool> randomGenerate (
+    "r",
+    llvm::cl::desc("Randomly genenrate 1 mutation for each provided source file"),
+    llvm::cl::value_desc("boolean"),
+    llvm::cl::Optional
+);
+
 /*
 static llvm::cl::opt<std::string> userSpecifiedTimeout(
     "timeout",
@@ -106,10 +113,12 @@ int main(int argc, const char** argv){
             userConfig.generateFakeHeader(*itSourceFile);
         }
     }
+
+    bool random = randomGenerate;
    
     clang::tooling::ClangTool tool(optionsParser.getCompilations(), optionsParser.getSourcePathList());
     std::map<std::string, std::list<std::string>>* mutantFileList;
-    int numOperators = parseCode(&tool, numSourceFile, &mutantFileList, directory);
+    int numOperators = parseCode(&tool, numSourceFile, &mutantFileList, directory, random);
 
     if (!userConfig.isEmpty()){
         for (auto itSourceFile = lstSourceFile.begin(); itSourceFile != lstSourceFile.end(); itSourceFile++){

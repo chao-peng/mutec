@@ -12,7 +12,7 @@ add_clang_executable(mutec
     src/UserConfig.h
     src/Main.cpp)
         
-target_link_libraries(mutec
+target_link_libraries(mutec PRIVATE
     clangAST
     clangASTMatchers
     clangBasic

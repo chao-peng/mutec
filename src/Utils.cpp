@@ -130,7 +130,7 @@ int MuTeCUtils::replaceStringPattern(std::string& originalString, const std::str
     return error_code::STATUS_OK;
 }
 
-std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, std::map<int, std::string>& mutableOperatorTemplates, const std::string& filePath){
+std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, std::map<int, std::string>& mutableOperatorTemplates, const std::string& filePath, bool random){
     std::ifstream sourceFile(filename);
     std::stringstream codeStream;
     std::string code;
@@ -141,33 +141,67 @@ std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, s
     int mutantID = 1;
     std::list<std::string> generatedMutants;
     
-    for(auto it = mutableOperatorTemplates.begin(); it!=mutableOperatorTemplates.end(); it++){
-        std::string tmpCode(code);
-        std::string currentTemplate = it->second;
-        int currentID;
-        std::string currentOperatorStr;
-        resolveTemplate(currentTemplate, currentID, currentOperatorStr);
-        for (auto it2 = mutableOperatorTemplates.begin(); it2!=mutableOperatorTemplates.end(); it2++){
-            if (it2->first != currentID){
-                std::string template2 = it2->second;
-                std::string operator2Str;
-                int operator2ID;
-                resolveTemplate(template2, operator2ID, operator2Str);
-                operator2Str = operator2Str.substr(0, operator2Str.length()-1);
-                replaceStringPattern(tmpCode, template2, operator2Str);
+    if (random){
+        int indexTargetTemplate = randomInInclusiveRange(1, mutableOperatorTemplates.size());
+        std::string targetTemplate = mutableOperatorTemplates[indexTargetTemplate];
+        std::string optFromTemplate; int ID;
+        resolveTemplate(targetTemplate, ID, optFromTemplate);
+        std::list<std::string> possibleOperators = mutantOperatorMap[optFromTemplate];
+        auto ptrChosenOpt = possibleOperators.begin();
+        std::advance(ptrChosenOpt, randomInInclusiveRange(0, possibleOperators.size()-1));
+        std::cout << "Random generation info\n"
+                << "Chosen template: " << targetTemplate << "\n"
+                << "Opt in template & id: " << optFromTemplate << " " << ID << "\n"
+                << "Chosen Replacement opt: " << *ptrChosenOpt << "\n"
+                << "End of info\n";
+        for (auto it = mutableOperatorTemplates.begin(); it!=mutableOperatorTemplates.end(); it++) {
+            if (it->second == targetTemplate) {
+                replaceStringPattern(code, targetTemplate, *ptrChosenOpt);
+            } else {
+                std::string currentTemplate = it->second;
+                int currentID;
+                std::string currentOperatorStr;
+                resolveTemplate(currentTemplate, currentID, currentOperatorStr);
+                currentOperatorStr = currentOperatorStr.substr(0, currentOperatorStr.length() -1);
+                replaceStringPattern(code, currentTemplate, currentOperatorStr);
             }
         }
-        std::list<std::string> mutantOperators = mutantOperatorMap[currentOperatorStr];
-        for (auto it3 = mutantOperators.begin(); it3!=mutantOperators.end(); it3++){
-            std::string codeToWrite(tmpCode);
-            replaceStringPattern(codeToWrite, currentTemplate, *it3);
-            std::stringstream fileNameBuilder;
-            fileNameBuilder << filePath << "." << source_code_rewriter_constants::MUTANT_FILENAME_SUFFIX << mutantID;
-            std::ofstream outputFile(fileNameBuilder.str());
-            generatedMutants.push_back(fileNameBuilder.str());
-            outputFile << codeToWrite;
-            outputFile.close();
-            mutantID++;
+        std::stringstream fileNameBuilder;
+        fileNameBuilder << filePath << "." << source_code_rewriter_constants::MUTANT_FILENAME_SUFFIX << mutantID;
+        std::ofstream outputFile(fileNameBuilder.str());
+        generatedMutants.push_back(fileNameBuilder.str());
+        outputFile << code;
+        outputFile.close();
+        mutantID++;
+    } else {
+        for(auto it = mutableOperatorTemplates.begin(); it!=mutableOperatorTemplates.end(); it++){
+            std::string tmpCode(code);
+            std::string currentTemplate = it->second;
+            int currentID;
+            std::string currentOperatorStr;
+            resolveTemplate(currentTemplate, currentID, currentOperatorStr);
+            for (auto it2 = mutableOperatorTemplates.begin(); it2!=mutableOperatorTemplates.end(); it2++){
+                if (it2->first != currentID){
+                    std::string template2 = it2->second;
+                    std::string operator2Str;
+                    int operator2ID;
+                    resolveTemplate(template2, operator2ID, operator2Str);
+                    operator2Str = operator2Str.substr(0, operator2Str.length()-1);
+                    replaceStringPattern(tmpCode, template2, operator2Str);
+                }
+            }
+            std::list<std::string> mutantOperators = mutantOperatorMap[currentOperatorStr];
+            for (auto it3 = mutantOperators.begin(); it3!=mutantOperators.end(); it3++){
+                std::string codeToWrite(tmpCode);
+                replaceStringPattern(codeToWrite, currentTemplate, *it3);
+                std::stringstream fileNameBuilder;
+                fileNameBuilder << filePath << "." << source_code_rewriter_constants::MUTANT_FILENAME_SUFFIX << mutantID;
+                std::ofstream outputFile(fileNameBuilder.str());
+                generatedMutants.push_back(fileNameBuilder.str());
+                outputFile << codeToWrite;
+                outputFile.close();
+                mutantID++;
+            }
         }
     }
 
@@ -193,4 +227,11 @@ int MuTeCUtils::alert(const std::string& message, const char* const colour, cons
         default:
             return error_code::STATUS_ERR;
     }
+}
+
+int MuTeCUtils::randomInInclusiveRange(int min, int max){
+    std::random_device rd;
+    std::mt19937 eng(rd());
+    std::uniform_int_distribution<> distr(min, max);
+    return distr(eng);
 }

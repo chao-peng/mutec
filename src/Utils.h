@@ -5,6 +5,7 @@
 #include <list>
 #include <fstream>
 #include <map>
+#include <random>
 #include <src/Constants.h>
 
 class MuTeCUtils{
@@ -24,12 +25,13 @@ public:
 
     static int replaceStringPattern(std::string& originalString, const std::string& pattern, const std::string& value);
 
-    static std::list<std::string> generateMutant(const std::string& filename, std::map<int, std::string>& mutableOperatorTemplates, const std::string& filePath);
+    static std::list<std::string> generateMutant(const std::string& filename, std::map<int, std::string>& mutableOperatorTemplates, const std::string& filePath, bool random);
 
     static int runCommand(const std::string& command);
 
     static int alert(const std::string& message, const char* const coulor, const int& msg_type = message_type::STD);
 
+    static int randomInInclusiveRange(int min, int max);
 };
 
 #endif
