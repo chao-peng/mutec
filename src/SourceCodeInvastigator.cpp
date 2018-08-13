@@ -97,7 +97,7 @@ public:
                 */
 
                 std::stringstream operatorTemplate;
-                operatorTemplate << "${operator_" << currentOperator << "_" << operatorStr << "}";
+                operatorTemplate << source_code_rewriter_constants::CODE_TEMPLATE_STR_PREFIX << currentOperator << "_" << operatorStr << "}";
                 mutableOperatorTemplates[currentOperator] = operatorTemplate.str();
                 myRewriter.ReplaceText(binaryOperator->getOperatorLoc(), operatorTemplate.str());
                 currentOperator++;
@@ -121,7 +121,7 @@ public:
                 */
 
                 std::stringstream operatorTemplate;
-                operatorTemplate << "${operator_" << currentOperator << "_" << operatorStr << "}";
+                operatorTemplate << source_code_rewriter_constants::CODE_TEMPLATE_STR_PREFIX << currentOperator << "_" << operatorStr << "}";
                 mutableOperatorTemplates[currentOperator] = operatorTemplate.str();
                 myRewriter.ReplaceText(unaryOperator->getOperatorLoc(), operatorTemplate.str());
                 currentOperator++;

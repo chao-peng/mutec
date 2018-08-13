@@ -136,6 +136,7 @@ std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, s
     std::string code;
     codeStream << sourceFile.rdbuf();
     code = codeStream.str();
+    sourceFile.close();
     std::map<std::string, std::list<std::string>> mutantOperatorMap;
     initialiseMutantOperatorMap(mutantOperatorMap);
     int mutantID = 1;
@@ -234,4 +235,83 @@ int MuTeCUtils::randomInInclusiveRange(int min, int max){
     std::mt19937 eng(rd());
     std::uniform_int_distribution<> distr(min, max);
     return distr(eng);
+}
+
+std::list<size_t> MuTeCUtils::strFindAll(const std::string str, const std::string substr){
+    std::list<size_t> result;
+    if (!(str.length()||substr.length())) return result;
+
+    size_t subLen = substr.length();
+    size_t strLen = str.length();
+
+    for (size_t i = 0; i <= (strLen - subLen);){
+        std::string sstr = str.substr(i, subLen);
+        if (sstr == substr){
+            result.push_back(i);
+            i = i + subLen;
+            continue;
+        } else {
+            i++;
+        }
+    }
+    
+    return result;
+}
+
+std::list<size_t> MuTeCUtils::strFindAll(const std::string str, const char* const substr){
+    return strFindAll(str, std::string(substr));
+}
+
+std::map<int, std::string> MuTeCUtils::retrieveTemplatesFromFile(const std::string& filename){
+    size_t i;
+    char ch;
+    std::map<int, std::string> result;
+    std::ifstream sourceFile(filename);
+    std::stringstream codeStream;
+    std::string code;
+    codeStream << sourceFile.rdbuf();
+    code = codeStream.str();
+    sourceFile.close();
+    std::map<std::string, unsigned int> operatorType;
+    MuTeCUtils::initialiseOperatorTypeMap(operatorType);
+
+    std::list<size_t> resultCandidatePos = strFindAll(code, source_code_rewriter_constants::CODE_TEMPLATE_STR_PREFIX);
+    for (auto it = resultCandidatePos.begin(); it != resultCandidatePos.end();){
+        int begin = *it;
+        int end;
+        it++;
+        if (it == resultCandidatePos.end()){
+            end = code.length();
+        } else {
+            end = *it;
+        }
+
+        std::string target = code.substr(begin, end - begin);
+        target = target.substr(0, target.find_first_of('}') + 1);
+        if (target == "") continue;
+
+        int IDBegin = target.find_first_of('_') + 1;
+        if (!isdigit(target[IDBegin])) continue;
+        int IDLen = 1;
+        for (i = IDBegin + 1; i < target.length(); i++ ){
+            ch = target[i];
+            if (isdigit(ch)){
+                IDLen++;
+            } else if (ch == '_') {
+                break;
+            } else {
+                IDLen = -1;
+            }
+        }
+        if (IDLen == -1) continue;
+
+        int ID = toInteger(target.substr(IDBegin, IDLen));
+
+        std::string OptStr = target.substr(target.find_last_of('_') + 1);
+        if (OptStr.length() < 3 || OptStr.length() > 4) continue;
+        OptStr = OptStr.substr(0, OptStr.length()-1);
+        if (operatorType.find(OptStr) == operatorType.end()) continue;
+        result[ID] = target;
+    }
+    return result;
 }

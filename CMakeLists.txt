@@ -11,10 +11,20 @@ add_clang_executable(mutec
     src/UserConfig.cpp
     src/UserConfig.h
     src/Main.cpp)
+
+add_clang_executable(mutec-template
+    src/GeneratorForTemplate.cpp
+    src/Utils.cpp
+    src/Utils.h
+    src/Constants.h
+)
         
 target_link_libraries(mutec PRIVATE
     clangAST
     clangASTMatchers
     clangBasic
     clangFrontend
+    clangTooling)
+
+target_link_libraries(mutec-template PRIVATE
     clangTooling)

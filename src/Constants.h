@@ -5,6 +5,8 @@ namespace source_code_rewriter_constants{
     const char* const FAKE_HEADER_MACRO = "MUTEC_FAKE_HEADER_FOR_LIBTOOLING_";
     const char* const CODE_TEMPLATE_FILENAME_SUFFIX = "code_template";
     const char* const MUTANT_FILENAME_SUFFIX = "mutec";
+    const char* const CODE_TEMPLATE_STR_PREFIX = "${operator_";
+    const int CODE_TEMPLATE_STR_PREFIX_LEN = 11;
 }
 
 namespace error_code{

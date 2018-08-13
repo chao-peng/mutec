@@ -32,6 +32,12 @@ public:
     static int alert(const std::string& message, const char* const coulor, const int& msg_type = message_type::STD);
 
     static int randomInInclusiveRange(int min, int max);
+
+    static std::list<size_t> strFindAll(const std::string str, const std::string substr);
+
+    static std::list<size_t> strFindAll(const std::string str, const char* const substr);
+
+    static std::map<int, std::string> retrieveTemplatesFromFile(const std::string& filename);
 };
 
 #endif
