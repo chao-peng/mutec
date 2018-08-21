@@ -221,6 +221,11 @@ public:
         const RewriteBuffer *buffer = myRewriter.getRewriteBufferFor(myRewriter.getSourceMgr().getMainFileID());
         if (buffer == NULL){
             llvm::outs() << "Rewriter buffer is null. Cannot write in file.\n";
+            std::list<std::string> mutants;
+            generatedMutantList[currentFileName] = mutants;
+            currentOperator = 1;
+            currentSourceFileID++;
+            mutableOperatorTemplates.clear();
             return;
         }
         std::string rewriteBuffer = std::string(buffer->begin(), buffer->end());

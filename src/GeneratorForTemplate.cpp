@@ -58,7 +58,7 @@ int main(int argc, const char** argv){
         MuTeCUtils::alert(notification.str(), output_colour::KBLU);
         if (describeTemplate) {
             notification.str("");
-            notification << "|- " << templates.size() << " operator found.";
+            notification << "|- " << templates.size() << " operators found.";
             MuTeCUtils::alert(notification.str(), output_colour::KBLU);
         }
         if (outputDirectory != ""){
