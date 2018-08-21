@@ -57,13 +57,13 @@ int main(int argc, const char** argv){
         notification << filename;
         MuTeCUtils::alert(notification.str(), output_colour::KBLU);
         if (describeTemplate) {
-            notification.clear();
+            notification.str("");
             notification << "|- " << templates.size() << " operator found.";
             MuTeCUtils::alert(notification.str(), output_colour::KBLU);
         }
         if (outputDirectory != ""){
             std::list<std::string> mutants = MuTeCUtils::generateMutant(filename, templates, dir + filename, randomGenerate);
-            notification.clear();
+            notification.str("");
             notification << "|- " << mutants.size() << " mutants have been generated.";
             MuTeCUtils::alert(notification.str(), output_colour::KBLU);
         }
