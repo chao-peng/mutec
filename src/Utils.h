@@ -38,6 +38,12 @@ public:
     static std::list<size_t> strFindAll(const std::string str, const char* const substr);
 
     static std::map<int, std::string> retrieveTemplatesFromFile(const std::string& filename);
+
+    static std::string getEnvVar(const std::string& var);
+
+    static bool isDebugMode();
+
+    static std::string getFilenameFromPath(const std::string& path);
 };
 
 #endif

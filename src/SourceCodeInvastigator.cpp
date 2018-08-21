@@ -40,6 +40,7 @@ std::map<std::string, std::list<std::string>> generatedMutantList;
 
 std::string directory;
 bool randomGenerate;
+bool generateTemplateOnly;
 
 ASTContext* context;
 
@@ -48,6 +49,15 @@ public:
     explicit RecursiveASTVisitorForSourceCodeInvastigator(Rewriter &r) : myRewriter(r) {}
 
     bool VisitStmt(Stmt *s){
+        // Determine if statement is in the target file
+        std::string sFileNamePath =  myRewriter.getSourceMgr().getFilename(s->getLocStart()).str();
+        if (sFileNamePath !=currentFileName) {
+            return true;
+        }
+        if (MuTeCUtils::isDebugMode()){
+           
+            std::cout << "Visit statement " <<  myRewriter.getSourceMgr().getFilename(s->getLocStart()).str() << "\n";
+        }
         if (isa<BinaryOperator>(s) || isa<UnaryOperator>(s)){
             SourceLocation rewrittenCodeStart= myRewriter.getSourceMgr().getFileLoc(s->getLocStart());
             SourceLocation rewrittenCodeEnd = myRewriter.getSourceMgr().getFileLoc(s->getLocEnd());
@@ -82,8 +92,14 @@ public:
         if (isa<BinaryOperator>(s)){
             BinaryOperator* binaryOperator = cast<BinaryOperator>(s);
             std::string operatorStr = binaryOperator->getOpcodeStr().str() + "B";
+            if (MuTeCUtils::isDebugMode()){
+                    std::cout << "Binary operator " << binaryOperator->getOpcodeStr().str()  <<" found \n";
+            }
             if (isMutable(operatorStr)){
                 if (notRewritable(myRewriter.getSourceMgr(), binaryOperator->getOperatorLoc())) return true;
+                if (MuTeCUtils::isDebugMode()){
+                    std::cout << "  - is rewritable\n";
+                }
                 /*
                 SourceLocation startLoc = myRewriter.getSourceMgr().getFileLoc(
                     binaryOperator->getLocStart());
@@ -99,15 +115,27 @@ public:
                 std::stringstream operatorTemplate;
                 operatorTemplate << source_code_rewriter_constants::CODE_TEMPLATE_STR_PREFIX << currentOperator << "_" << operatorStr << "}";
                 mutableOperatorTemplates[currentOperator] = operatorTemplate.str();
+                if (MuTeCUtils::isDebugMode()){
+                    std::cout << "  - replace by template for binary operator " << operatorStr << "\n";
+                }
                 myRewriter.ReplaceText(binaryOperator->getOperatorLoc(), operatorTemplate.str());
+                if (MuTeCUtils::isDebugMode()){
+                    std::cout << "  - done\n";
+                }
                 currentOperator++;
                 numOperators++;
             }
         } else if (isa<UnaryOperator>(s)){
             UnaryOperator* unaryOperator = cast<UnaryOperator>(s);
             std::string operatorStr = unaryOperator->getOpcodeStr(unaryOperator->getOpcode()).str() + "U";
+            if (MuTeCUtils::isDebugMode()){
+                    std::cout << "Unary operator " << unaryOperator->getOpcodeStr(unaryOperator->getOpcode()).str()  <<" found \n";
+            }
             if (isMutable(operatorStr)){
                 if (notRewritable(myRewriter.getSourceMgr(), unaryOperator->getOperatorLoc())) return true;
+                if (MuTeCUtils::isDebugMode()){
+                    std::cout << "  - is rewritable\n";
+                }
                 /*
                 SourceLocation startLoc = myRewriter.getSourceMgr().getFileLoc(
                     unaryOperator->getLocStart());
@@ -123,7 +151,13 @@ public:
                 std::stringstream operatorTemplate;
                 operatorTemplate << source_code_rewriter_constants::CODE_TEMPLATE_STR_PREFIX << currentOperator << "_" << operatorStr << "}";
                 mutableOperatorTemplates[currentOperator] = operatorTemplate.str();
+                if (MuTeCUtils::isDebugMode()){
+                    std::cout << "  - replace by template for unary operator " << operatorStr << "\n";
+                }
                 myRewriter.ReplaceText(unaryOperator->getOperatorLoc(), operatorTemplate.str());
+                if (MuTeCUtils::isDebugMode()){
+                    std::cout << "  - done\n";
+                }
                 currentOperator++;
                 numOperators++;
             }
@@ -160,6 +194,9 @@ public:
     ASTConsumerForSourceCodeInvastigator(Rewriter &r): visitor(r) {}
 
     bool HandleTopLevelDecl(DeclGroupRef DR) override {
+        if (MuTeCUtils::isDebugMode()){
+                std::cout << "start running HandleTopLevelDecl\n";
+            }
         for (DeclGroupRef::iterator b = DR.begin(), e = DR.end(); b != e; ++b) {
             // Traverse the declaration using our AST visitor.
             visitor.TraverseDecl(*b);
@@ -177,6 +214,9 @@ public:
     ASTFrontendActionForSourceCodeInvastigator() {}
 
     void EndSourceFileAction() override {
+        if (MuTeCUtils::isDebugMode()){
+            std::cout << "start running EndSourceFileAction\n";
+        }
         std::stringstream notification;
         const RewriteBuffer *buffer = myRewriter.getRewriteBufferFor(myRewriter.getSourceMgr().getMainFileID());
         if (buffer == NULL){
@@ -200,12 +240,16 @@ public:
         outputFileStream.close();
         UserConfig::removeFakeHeader(filename);
         
-        std::list<std::string> mutants = MuTeCUtils::generateMutant(filename, mutableOperatorTemplates, directory + realCurrentFileName, randomGenerate);
-
-        notification << "|- " << mutants.size() << " mutants have been generated.";
-
-        MuTeCUtils::alert(notification.str(), output_colour::KBLU);
-
+        std::list<std::string> mutants;
+        if (!generateTemplateOnly){
+            mutants = MuTeCUtils::generateMutant(filename, mutableOperatorTemplates, directory + realCurrentFileName, randomGenerate);
+            notification << "|- " << mutants.size() << " mutants have been generated.";
+            MuTeCUtils::alert(notification.str(), output_colour::KBLU);
+        } else {
+            notification << "|- code template have been generated.";
+            MuTeCUtils::alert(notification.str(), output_colour::KBLU);
+        }
+        
         generatedMutantList[currentFileName] = mutants;
         currentOperator = 1;
         currentSourceFileID++;
@@ -214,6 +258,9 @@ public:
 
     virtual std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &ci, 
         StringRef file) override {
+            if (MuTeCUtils::isDebugMode()){
+                std::cout << "start running CreateASTConsumer\n";
+            }
             std::stringstream notification;
             notification << "[" << currentSourceFileID << "/" << numSourceFile << "] Instrumenting " << file.str();
             currentFileName = file.str();
@@ -227,7 +274,10 @@ private:
     Rewriter myRewriter;
 };
 
-int parseCode(clang::tooling::ClangTool* tool, const int& numSourceFileIn, std::map<std::string, std::list<std::string>>** mutantFileList, const std::string& outputDirectory, bool random){
+int parseCode(clang::tooling::ClangTool* tool, const int& numSourceFileIn, std::map<std::string, std::list<std::string>>** mutantFileList, const std::string& outputDirectory, bool random, bool templateOnly){
+    if (MuTeCUtils::isDebugMode()){
+        std::cout << "start parseCode\n";
+    }
     codeTemplate = "";
     templateMap.clear();
     MuTeCUtils::initialiseOperatorTypeMap(operatorType);
@@ -238,7 +288,11 @@ int parseCode(clang::tooling::ClangTool* tool, const int& numSourceFileIn, std::
     numOperators=0;
     directory = outputDirectory;
     randomGenerate = random;
+    generateTemplateOnly = templateOnly;
 
+    if (MuTeCUtils::isDebugMode()){
+        std::cout << "start running FrontendActionFactory\n";
+    }
     tool->run(newFrontendActionFactory<ASTFrontendActionForSourceCodeInvastigator>().get());
     *mutantFileList = &generatedMutantList;
     return numOperators;

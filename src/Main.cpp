@@ -66,6 +66,13 @@ static llvm::cl::opt<bool> randomGenerate (
     llvm::cl::Optional
 );
 
+static llvm::cl::opt<bool> templateOnly (
+    "t",
+    llvm::cl::desc("Only generate mutec code template"),
+    llvm::cl::value_desc("boolean"),
+    llvm::cl::Optional
+);
+
 /*
 static llvm::cl::opt<std::string> userSpecifiedTimeout(
     "timeout",
@@ -115,10 +122,11 @@ int main(int argc, const char** argv){
     }
 
     bool random = randomGenerate;
-   
+    bool generateTemplateOnly = templateOnly;
+
     clang::tooling::ClangTool tool(optionsParser.getCompilations(), optionsParser.getSourcePathList());
     std::map<std::string, std::list<std::string>>* mutantFileList;
-    int numOperators = parseCode(&tool, numSourceFile, &mutantFileList, directory, random);
+    int numOperators = parseCode(&tool, numSourceFile, &mutantFileList, directory, random, generateTemplateOnly);
 
     if (!userConfig.isEmpty()){
         for (auto itSourceFile = lstSourceFile.begin(); itSourceFile != lstSourceFile.end(); itSourceFile++){

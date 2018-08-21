@@ -4,6 +4,6 @@
 #include "clang/Tooling/Tooling.h"
 #include "UserConfig.h"
 
-int parseCode(clang::tooling::ClangTool* tool, const int& numSourceFileIn, std::map<std::string, std::list<std::string>>** mutantFileList, const std::string& outputDirectory, bool random);
+int parseCode(clang::tooling::ClangTool* tool, const int& numSourceFileIn, std::map<std::string, std::list<std::string>>** mutantFileList, const std::string& outputDirectory, bool random, bool templateOnly);
 
 #endif

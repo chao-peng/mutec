@@ -315,3 +315,27 @@ std::map<int, std::string> MuTeCUtils::retrieveTemplatesFromFile(const std::stri
     }
     return result;
 }
+
+std::string MuTeCUtils::getEnvVar(const std::string& var){
+    const char* val = std::getenv(var.c_str());
+    if (val == NULL) {
+        return "";
+    }
+    else {
+        return std::string(val);
+    }
+}
+
+bool MuTeCUtils::isDebugMode(){
+    std::string var = std::string(source_code_rewriter_constants::MUTEC_DEBUG_ENV_VAR);
+    return getEnvVar(var) != "";
+}
+
+std::string MuTeCUtils::getFilenameFromPath(const std::string& path){
+    if (path.at(path.length()-1)=='/') return "";
+    size_t loc = path.find_last_not_of('/');
+    std::string result = path.substr(0, loc + 1);
+    loc = result.find_last_of('/');
+    if (loc == std::string::npos) return result;
+    else return result.substr(loc+1);
+}
