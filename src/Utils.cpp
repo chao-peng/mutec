@@ -339,3 +339,17 @@ std::string MuTeCUtils::getFilenameFromPath(const std::string& path){
     if (loc == std::string::npos) return result;
     else return result.substr(loc+1);
 }
+
+int MuTeCUtils::numPossibleMutants(std::map<int, std::string>& templateList){
+    int result = 0;
+    std::map<std::string, std::list<std::string>> mutantOperatorMap;
+    initialiseMutantOperatorMap(mutantOperatorMap);
+    for (auto it = templateList.begin(), e = templateList.end(); it != e; ++it) {
+        int id = it->first;
+        std::string templateStr = it->second;
+        std::string operatorStr;
+        resolveTemplate(templateStr, id, operatorStr);
+        result += (mutantOperatorMap[operatorStr].size());
+    }
+    return result;
+}

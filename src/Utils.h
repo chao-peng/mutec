@@ -44,6 +44,8 @@ public:
     static bool isDebugMode();
 
     static std::string getFilenameFromPath(const std::string& path);
+
+    static int numPossibleMutants(std::map<int, std::string>& templateList);
 };
 
 #endif

@@ -50,6 +50,8 @@ int main(int argc, const char** argv){
     }
     
     std::string filename;
+    int totalMutationOpts = 0;
+    int totalPossibleMutants = 0;
     for (auto it = optionsParser.getSourcePathList().begin(); it!=optionsParser.getSourcePathList().end();it++){
         filename = it->c_str();
         std::map<int, std::string> templates = MuTeCUtils::retrieveTemplatesFromFile(filename);
@@ -58,7 +60,11 @@ int main(int argc, const char** argv){
         MuTeCUtils::alert(notification.str(), output_colour::KBLU);
         if (describeTemplate) {
             notification.str("");
-            notification << "|- " << templates.size() << " operators found.";
+            notification << "|- " << templates.size() << " mutation operators found.\n";
+            totalMutationOpts += templates.size();
+            int num = MuTeCUtils::numPossibleMutants(templates);
+            totalPossibleMutants += num;
+            notification << "|- " << num << " mutants in total can be generated.";
             MuTeCUtils::alert(notification.str(), output_colour::KBLU);
         }
         if (outputDirectory != ""){
@@ -67,6 +73,12 @@ int main(int argc, const char** argv){
             notification << "|- " << mutants.size() << " mutants have been generated.";
             MuTeCUtils::alert(notification.str(), output_colour::KBLU);
         }
+    }
+
+    if (describeTemplate){
+        std::stringstream notification;
+        notification << "Summary: " << totalMutationOpts << " mutation operations found. " << totalPossibleMutants << " mutants can be generated.";
+        MuTeCUtils::alert(notification.str(), output_colour::KBLU);
     }
     return 0;
 }
