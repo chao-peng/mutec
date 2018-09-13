@@ -37,6 +37,8 @@ void MuTeCUtils::initialiseOperatorTypeMap(std::map<std::string, unsigned int>& 
     operatorTypeMap["%B"]   = operator_type::ARITHMETIC;
     operatorTypeMap["++U"]  = operator_type::ARITHMETIC;
     operatorTypeMap["--U"]  = operator_type::ARITHMETIC;
+    operatorTypeMap["+PB"]  = operator_type::ARITHMETIC;
+    operatorTypeMap["-PB"]  = operator_type::ARITHMETIC;
     operatorTypeMap["==B"]  = operator_type::RELATIONAL;
     operatorTypeMap["!=B"]  = operator_type::RELATIONAL;
     operatorTypeMap["<B"]   = operator_type::RELATIONAL;
@@ -77,6 +79,8 @@ void MuTeCUtils::initialiseMutantOperatorMap(std::map<std::string, std::list<std
     mutantOperatorMap["%B"] = {"*", "+", "-", "/"};
     mutantOperatorMap["++U"] = {"--"};
     mutantOperatorMap["--U"] = {"++"};
+    mutantOperatorMap["+PB"] = {"-"}; // for pointers
+    mutantOperatorMap["-PB"] = {"+"}; // for pointers
     //Relational
     mutantOperatorMap["<B"] = {">", ">=", "<="};
     mutantOperatorMap[">B"] = {"<", "<=", ">="};
@@ -163,7 +167,11 @@ std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, s
                 int currentID;
                 std::string currentOperatorStr;
                 resolveTemplate(currentTemplate, currentID, currentOperatorStr);
-                currentOperatorStr = currentOperatorStr.substr(0, currentOperatorStr.length() -1);
+                if (currentOperatorStr.find("PB")!=std::string::npos){
+                    currentOperatorStr = currentOperatorStr.substr(0, currentOperatorStr.length()-2);
+                } else {
+                    currentOperatorStr = currentOperatorStr.substr(0, currentOperatorStr.length()-1);
+                }
                 replaceStringPattern(code, currentTemplate, currentOperatorStr);
             }
         }
@@ -187,7 +195,12 @@ std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, s
                     std::string operator2Str;
                     int operator2ID;
                     resolveTemplate(template2, operator2ID, operator2Str);
-                    operator2Str = operator2Str.substr(0, operator2Str.length()-1);
+                    // For PB type
+                    if (operator2Str.find("PB")!=std::string::npos){
+                        operator2Str = operator2Str.substr(0, operator2Str.length()-2);
+                    } else {
+                        operator2Str = operator2Str.substr(0, operator2Str.length()-1);
+                    }
                     replaceStringPattern(tmpCode, template2, operator2Str);
                 }
             }

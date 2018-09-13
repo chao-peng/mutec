@@ -95,7 +95,15 @@ public:
             if (MuTeCUtils::isDebugMode()){
                     std::cout << "Binary operator " << binaryOperator->getOpcodeStr().str()  <<" found \n";
             }
+            // special case for pointer operators
             if (isMutable(operatorStr)){
+                // special case for pointer operations
+                if (binaryOperator->getLHS()->getType()->isAnyPointerType() && binaryOperator->getRHS()->getType()->isAnyPointerType()){
+                    if (operatorStr == "-B") {
+                        return true;
+                    }
+                }
+
                 if (notRewritable(myRewriter.getSourceMgr(), binaryOperator->getOperatorLoc())) return true;
                 if (MuTeCUtils::isDebugMode()){
                     std::cout << "  - is rewritable\n";
@@ -112,6 +120,16 @@ public:
                 std::cout << "[debug]" << myRewriter.getRewrittenText(newRange) << std::endl;
                 */
 
+                // special case for pointer operations
+                if ((binaryOperator->getLHS()->getType()->isAnyPointerType() && binaryOperator->getRHS()->getType()->isIntegerType())
+                    || (binaryOperator->getLHS()->getType()->isIntegerType() && binaryOperator->getRHS()->getType()->isAnyPointerType())){
+                        if (operatorStr == "+B" || operatorStr == "-B"){
+                            if (MuTeCUtils::isDebugMode()){
+                                std::cout << "  - applied to pointer offset\n";
+                            }
+                            operatorStr = binaryOperator->getOpcodeStr().str() + "PB";
+                        }
+                }
                 std::stringstream operatorTemplate;
                 operatorTemplate << source_code_rewriter_constants::CODE_TEMPLATE_STR_PREFIX << currentOperator << "_" << operatorStr << "}";
                 mutableOperatorTemplates[currentOperator] = operatorTemplate.str();
