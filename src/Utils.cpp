@@ -143,9 +143,18 @@ std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, s
     sourceFile.close();
     std::map<std::string, std::list<std::string>> mutantOperatorMap;
     initialiseMutantOperatorMap(mutantOperatorMap);
+    std::map<std::string, unsigned int> operatorType;
+    initialiseOperatorTypeMap(operatorType);
     int mutantID = 1;
     std::list<std::string> generatedMutants;
-    
+
+    int arithemeticOperatorCount = 0;
+    int relationalOperatorCount = 0;
+    int logicalOperatorCount = 0;
+    int bitwiseOperatorCount = 0;
+    int assignmentOperatorCount = 0;
+    int otherOperatorCount = 0;
+
     if (random){
         int indexTargetTemplate = randomInInclusiveRange(1, mutableOperatorTemplates.size());
         std::string targetTemplate = mutableOperatorTemplates[indexTargetTemplate];
@@ -205,7 +214,53 @@ std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, s
                 }
             }
             std::list<std::string> mutantOperators = mutantOperatorMap[currentOperatorStr];
+
+
+            auto type = operatorType[currentOperatorStr];
+            int lenMutantOperators = mutantOperators.size();
+            switch (type) {
+                case operator_type::ARITHMETIC:
+                    arithemeticOperatorCount += lenMutantOperators;
+                    break;
+                case operator_type::RELATIONAL:
+                    relationalOperatorCount += lenMutantOperators;
+                    break;
+                case operator_type::LOGICAL:
+                    logicalOperatorCount += lenMutantOperators;
+                    break;
+                case operator_type::ASSIGNMENT:
+                    assignmentOperatorCount += lenMutantOperators;
+                    break;
+                case operator_type::BITWISE:
+                    bitwiseOperatorCount += lenMutantOperators;
+                    break;
+                case operator_type::OTHER:
+                    otherOperatorCount += lenMutantOperators;
+                    break;
+            }
+
             for (auto it3 = mutantOperators.begin(); it3!=mutantOperators.end(); it3++){
+                std::cout << "Mutant ID " << mutantID << " type is: ";
+                switch (type) {
+                    case operator_type::ARITHMETIC:
+                        std::cout << "ARITHMETIC \n";
+                        break;
+                    case operator_type::RELATIONAL:
+                        std::cout << "RELATIONAL \n";
+                        break;
+                    case operator_type::LOGICAL:
+                        std::cout << "LOGICAL \n";
+                        break;
+                    case operator_type::ASSIGNMENT:
+                        std::cout << "ASSIGNMENT \n";
+                        break;
+                    case operator_type::BITWISE:
+                        std::cout << "BITWISE \n";
+                        break;
+                    case operator_type::OTHER:
+                        std::cout << "OTHER \n";
+                        break;
+                }
                 std::string codeToWrite(tmpCode);
                 replaceStringPattern(codeToWrite, currentTemplate, *it3);
                 std::stringstream fileNameBuilder;
@@ -220,6 +275,17 @@ std::list<std::string> MuTeCUtils::generateMutant(const std::string& filename, s
     }
 
     mutantID--;
+
+
+    std::cout << "Operator Summary\n"
+        << "Arithmetic: " << arithemeticOperatorCount << "\n"
+        << "Relational:" << relationalOperatorCount << "\n"
+        << "Logical: " << logicalOperatorCount << "\n"
+        << "Bitwise: " << bitwiseOperatorCount << "\n"
+        << "Assignment: " << assignmentOperatorCount << "\n"
+        << "Other: " << otherOperatorCount << "\n"
+        << "End of Operator Summary\n";
+
     return generatedMutants;
 }
 

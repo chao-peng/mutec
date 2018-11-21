@@ -50,17 +50,17 @@ public:
 
     bool VisitStmt(Stmt *s){
         // Determine if statement is in the target file
-        std::string sFileNamePath =  myRewriter.getSourceMgr().getFilename(s->getLocStart()).str();
+        std::string sFileNamePath =  myRewriter.getSourceMgr().getFilename(s->getBeginLoc()).str();
         if (sFileNamePath !=currentFileName) {
             return true;
         }
         if (MuTeCUtils::isDebugMode()){
            
-            std::cout << "Visit statement " <<  myRewriter.getSourceMgr().getFilename(s->getLocStart()).str() << "\n";
+            std::cout << "Visit statement " <<  myRewriter.getSourceMgr().getFilename(s->getBeginLoc()).str() << "\n";
         }
         if (isa<BinaryOperator>(s) || isa<UnaryOperator>(s)){
-            SourceLocation rewrittenCodeStart= myRewriter.getSourceMgr().getFileLoc(s->getLocStart());
-            SourceLocation rewrittenCodeEnd = myRewriter.getSourceMgr().getFileLoc(s->getLocEnd());
+            SourceLocation rewrittenCodeStart= myRewriter.getSourceMgr().getFileLoc(s->getBeginLoc());
+            SourceLocation rewrittenCodeEnd = myRewriter.getSourceMgr().getFileLoc(s->getEndLoc());
             SourceRange rewrittenCodeRange;
             rewrittenCodeRange.setBegin(rewrittenCodeStart);
             rewrittenCodeRange.setEnd(rewrittenCodeEnd);
